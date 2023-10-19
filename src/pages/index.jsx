@@ -1,24 +1,26 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { ref, getDownloadURL, listAll } from "firebase/storage";
 import { storage } from "../../firebase";
+import ReactPlayer from "react-player";
 
 export default function Home() {
   const [fileList, setFileList] = useState([]);
-  const [audioElements, setAudioElements] = useState([]);
+  const [activeAudioIndex, setActiveAudioIndex] = useState(null);
+  const [isAudioPlaying, setIsAudioPlaying] = useState(false);
 
   async function listFiles() {
     try {
-      const storageRef = ref(storage, '/images'); // Corrija o caminho para '/images'
+      const storageRef = ref(storage, '/images'); // Certifique-se de usar o caminho correto
       const files = await listAll(storageRef);
 
-      const filesArray = [];
+      const fileArray = [];
 
       for (const item of files.items) {
         const url = await getDownloadURL(item);
-        filesArray.push({ name: item.name, downloadURL: url });
+        fileArray.push({ name: item.name, downloadURL: url });
       }
 
-      setFileList(filesArray);
+      setFileList(fileArray);
     } catch (error) {
       console.error("Erro ao listar arquivos: " + error);
     }
@@ -29,21 +31,19 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    // Quando a lista de arquivos é atualizada, criamos elementos de áudio
-    const audioEls = fileList.map(() => new Audio());
-    setAudioElements(audioEls);
-  }, [fileList]);
-
-  useEffect(() => {
-    // Manipuladores de eventos para controlar a reprodução com teclas
     const handleKeyDown = (event) => {
-      const key = event.key;
-      if (/^[0-9]$/.test(key)) {
-        const index = parseInt(key) - 1; // Converta a tecla para um índice de 0 a 9
-
+      // Verifique se uma tecla numérica foi pressionada (de 1 a 9)
+      if (event.key >= '1' && event.key <= '9') {
+        const index = parseInt(event.key) - 1; // Converta a tecla pressionada em um índice
         if (index >= 0 && index < fileList.length) {
-          const audio = audioElements[index];
-          audio.paused ? audio.play() : audio.pause();
+          if (index === activeAudioIndex) {
+            // Pressionar a mesma tecla, pausar/reproduzir
+            setIsAudioPlaying(!isAudioPlaying);
+          } else {
+            // Pressionar uma tecla diferente, reproduzir a nova faixa
+            setActiveAudioIndex(index);
+            setIsAudioPlaying(true);
+          }
         }
       }
     };
@@ -53,7 +53,7 @@ export default function Home() {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [fileList, audioElements]);
+  }, [fileList, activeAudioIndex, isAudioPlaying]);
 
   return (
     <div>
@@ -63,6 +63,12 @@ export default function Home() {
           <li key={index}>
             <div>
               <span>Nome do arquivo: {file.name}</span>
+              <ReactPlayer
+                url={file.downloadURL}
+                controls={true}
+                width="100%"
+                playing={index === activeAudioIndex && isAudioPlaying}
+              />
             </div>
           </li>
         ))}
