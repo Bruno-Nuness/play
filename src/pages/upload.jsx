@@ -113,6 +113,7 @@ function Upload() {
           id="files"
           onChange={(files) => handleSelectFile(files.target.files)}
           ref={inputRef}
+          accept=".mp3"
           style={{ display: "none" }}
         />
         <button onClick={handleUploadFile}>Upload</button>
