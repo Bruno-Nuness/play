@@ -1,6 +1,6 @@
-import { url } from "inspector";
+
 import { globalCss } from ".";
-import Background from '@/assets/img/background.png'
+
 
 export const globalStyle = globalCss({
     "*": {
@@ -8,7 +8,7 @@ export const globalStyle = globalCss({
       padding: 0,
       border: 0,
       fontSize: "100%",
-      font: "inherit",
+   
       verticalAlign: "baseline",
     },
     "article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section":
@@ -17,7 +17,8 @@ export const globalStyle = globalCss({
       },
     body: {
       lineHeight: 1,
-      fontFamily:'Jua',
+      background:'#004250',
+   
    
     },
     "ol, ul": {
@@ -36,4 +37,7 @@ export const globalStyle = globalCss({
       borderCollapse: "collapse",
       borderSpacing: 0,
     },
+    button:{
+      cursor:'pointer'
+    }
   });

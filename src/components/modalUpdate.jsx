@@ -1,90 +1,50 @@
-import React, { useEffect, useState } from "react";
-import { ref, getDownloadURL, listAll, updateMetadata } from "firebase/storage";
+import { ModalUpdateContainer } from "@/styles/modalUpdate";
+import React, { useState } from "react";
+import { getStorage, ref, getDownloadURL, listAll, deleteObject, updateMetadata } from "firebase/storage";
 import { storage } from "../../firebase";
-import ReactPlayer from "react-player";
-import CustomModal from '@/components/modalUpdate'
 
-export default function Home() {
-  const [fileList, setFileList] = useState([]);
-  const [activeAudioIndex, setActiveAudioIndex] = useState(null);
-  const [isAudioPlaying, setIsAudioPlaying] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [updatedName, setUpdatedName] = useState("");
+export const UpdateModal = ({ value, onConfirm, onClose }) => {
+  const [newValue, setNewValue] = useState(value);
 
-  async function listFiles() {
+  const updateFileName = async () => {
     try {
-      const storageRef = ref(storage, '/images');
-      const files = await listAll(storageRef);
+      // Crie uma referência para o arquivo original
+      
+      const fileRef = ref(storage, `gs://upload-teste-br.appspot.com/images/${value}`);
 
-      const fileArray = [];
+      // Obtenha a URL de download original (se necessário)
+      const downloadURL = await getDownloadURL(fileRef);
 
-      for (const item of files.items) {
-        const url = await getDownloadURL(item);
-        fileArray.push({ name: item.name, downloadURL: url });
-      }
+      // Crie uma nova referência para o arquivo com o nome atualizado
+      const newFileRef = ref(storage, `gs://upload-teste-br.appspot.com/images/${newValue}`);
 
-      setFileList(fileArray);
+      // Copie o conteúdo do arquivo original para o novo arquivo
+      await updateMetadata(newFileRef, { customMetadata: { name: newValue } });
+      await deleteObject(fileRef); // Exclua o arquivo original
+
+      // Chame a função onConfirm para fechar o modal
+      onConfirm();
+
+      // Atualize a lista de arquivos após a renomeação
+      listFiles();
     } catch (error) {
-      console.error("Erro ao listar arquivos: " + error);
-    }
-  }
-
-  useEffect(() => {
-    listFiles();
-  }, []);
-
-  const openModal = (index) => {
-    setIsModalOpen(true);
-    setActiveAudioIndex(index);
-    setUpdatedName(fileList[index].name);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-  };
-
-  const updateName = async () => {
-    try {
-      const fileToUpdate = fileList[activeAudioIndex];
-      const storageRef = ref(storage, `/images/${fileToUpdate.name}`);
-
-      // Atualize o metadado do arquivo para refletir o novo nome
-      await updateMetadata(storageRef, { customMetadata: { name: updatedName } });
-
-      console.log(`Nome atualizado para: ${updatedName}`);
-      closeModal();
-      listFiles(); // Atualize a lista após a atualização
-    } catch (error) {
-      console.error("Erro na atualização: " + error);
+      console.error("Erro na atualização do nome do arquivo: " + error);
     }
   };
 
   return (
-    <div>
-      <h2>Arquivos de Áudio:</h2>
-      <ul>
-        {fileList.map((file, index) => (
-          <li key={index}>
-            <div>
-              <span>Nome do arquivo: {file.name}</span>
-              <ReactPlayer
-                url={file.downloadURL}
-                controls={true}
-                width="100%"
-                playing={index === activeAudioIndex && isAudioPlaying}
-              />
-              <button onClick={() => openModal(index)}>Atualizar</button>
-            </div>
-          </li>
-        ))}
-      </ul>
-      <CustomModal
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        onConfirm={updateName}
-        value={updatedName}
-        onChange={(e) => setUpdatedName(e.target.value)}
-      />
-    </div>
+    <ModalUpdateContainer>
+      <div className="modal-content">
+        <h2>Atualizar Nome do Arquivo</h2>
+        <input
+          type="text"
+          placeholder="Novo nome do arquivo"
+          defaultValue={newValue}
+          onChange={(e) => setNewValue(e.target.value)}
+        />
+        <button onClick={updateFileName}>Confirmar</button>
+        <button onClick={onClose}>Cancelar</button>
+      </div>
+    </ModalUpdateContainer>
   );
-}
+};
