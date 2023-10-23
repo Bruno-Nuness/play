@@ -15,6 +15,12 @@ export const HomeContainer = styled("main", {
     marginTop: "4rem",
     gap: "1rem",
   },
+  
+  b:{
+    color:'red',
+    fontSize:'2rem'
+  }
+  ,
   li: {
     display: "flex",
     flexDirection: "column",

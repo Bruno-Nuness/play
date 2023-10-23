@@ -51,25 +51,38 @@ export default function Home() {
   }, []);
   useEffect(() => {
     const handleKeyDown = (event) => {
-      if (event.key >= "1" && event.key <= "9") {
-        const index = parseInt(event.key) - 1;
-        if (index >= 0 && index < fileList.length) {
-          if (index === activeAudioIndex) {
-            setIsAudioPlaying(!isAudioPlaying);
-          } else {
-            setActiveAudioIndex(index);
-            setIsAudioPlaying(true);
-          }
+      const keyToIndex = {
+        "1": 0,
+        "2": 1,
+        "3": 2,
+        "4": 3,
+        "5": 4,
+        "6": 5,
+        "7": 6,
+        "8": 7,
+        "9": 8,
+        "0": 9,
+      };
+  
+      const index = keyToIndex[event.key];
+      
+      if (index !== undefined && index < fileList.length) {
+        if (index === activeAudioIndex) {
+          setIsAudioPlaying(!isAudioPlaying);
+        } else {
+          setActiveAudioIndex(index);
+          setIsAudioPlaying(true);
         }
       }
     };
-
+  
     window.addEventListener("keydown", handleKeyDown);
-
+  
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [fileList, activeAudioIndex, isAudioPlaying]);
+  
 
   const handleDelete = async (index) => {
     openDeleteModal(index);
@@ -161,8 +174,9 @@ export default function Home() {
                 draggable={isEditing}
               >
                 <div>
-                  <span>Precione a tecla: {index + 1}</span>
-                  <span>Nome do arquivo: {file.name}</span>
+                <span>Precione a tecla:<b> {index +1}</b></span>
+
+                  <span>Musica: <i>{file.name}</i>  </span>
                   <ReactPlayer
                     url={file.downloadURL}
                     controls={true}

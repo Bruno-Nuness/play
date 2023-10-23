@@ -17,7 +17,7 @@ export const globalStyle = globalCss({
       },
     body: {
       lineHeight: 1,
-      background:'#004250',
+      background:'radial-gradient(at center center,#161C2F 0%, #000000 100%);',
    
    
     },
